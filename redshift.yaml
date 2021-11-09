@@ -312,11 +312,6 @@ Resources:
                   region 'us-east-1' lzop delimiter '|' COMPUPDATE PRESET;
               """)
               run_query(conn, """
-                  copy public.customer from 's3://aws-bigdata-blog/artifacts/automate-redshift-etl-dbt/sample_data/customer/customer.tbl.'
-                  iam_role '${RedshiftAccessRole.Arn}'
-                  region 'us-east-1' lzop delimiter '|' COMPUPDATE PRESET;
-              """)
-              run_query(conn, """
                   copy public.orders from 's3://aws-bigdata-blog/artifacts/automate-redshift-etl-dbt/sample_data/orders/orders.tbl.'
                   iam_role '${RedshiftAccessRole.Arn}'
                   region 'us-east-1' lzop delimiter '|' COMPUPDATE PRESET;
