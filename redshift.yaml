@@ -235,7 +235,7 @@ Resources:
     - NetworkAclPublicSubnet
     Properties:
       Code:
-        ZipFile: !Sub |
+       # ZipFile: !Sub |
           import psycopg2
           from psycopg2 import ProgrammingError
           import boto3
