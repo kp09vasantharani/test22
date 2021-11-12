@@ -264,9 +264,9 @@ Resources:
               print("executed")
           def lambda_handler(event, context):
               print(event)
-              #if event["RequestType"] == "Delete":
-              #  cfnresponse.send(event, context, cfnresponse.SUCCESS, {}, {})
-              #  return
+              if event["RequestType"] == "Delete":
+                cfnresponse.send(event, context, cfnresponse.SUCCESS, {}, {})
+                return
               username, password = get_redshift_creds()
               conn = create_conn(username, password)
               run_query(conn, "DROP TABLE IF EXISTS public.orders CASCADE;")
@@ -306,7 +306,7 @@ Resources:
                   distkey (O_ORDERKEY)
                   sortkey (O_ORDERDATE);
               """)
-             # cfnresponse.send(event, context, cfnresponse.SUCCESS, {}, {})
+             cfnresponse.send(event, context, cfnresponse.SUCCESS, {}, {})
       Handler: "index.lambda_handler"
       Timeout: 900
       Role:
