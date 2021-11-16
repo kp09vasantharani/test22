@@ -21,7 +21,7 @@ Resources:
     Properties:
       CidrBlock: 172.16.0.0/24
       VpcId: !Ref VPC
-      AvailabilityZone: "us-east-1a"
+      AvailabilityZone: "us-west-1"
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
@@ -32,7 +32,7 @@ Resources:
     Properties:
       CidrBlock: 172.16.2.0/24
       VpcId: !Ref VPC
-      AvailabilityZone: "us-east-1a"
+      AvailabilityZone: "us-west-1"
       Tags:
         - Key: Name
           Value: PrivateSubnet
