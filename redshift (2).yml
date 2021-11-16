@@ -32,7 +32,7 @@ Resources:
                       user=username,
                       password=password,
                       port="5439",
-                      host="${RedshiftCluster.Endpoint.Address}")
+                      host="redshiftcluster-pk9h2uggaevp.cqanaoi61lao.us-east-1.redshift.amazonaws.com"
               conn.autocommit = True
               return conn
           def run_query(conn, query):
