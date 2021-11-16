@@ -145,39 +145,6 @@ Resources:
       LayerName: RedshiftUtil
       LicenseInfo: MIT
 
-  LambdaSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: EC2 Security Group for Lambda function
-      VpcId:
-        Ref: VPC
-
-  LambdaToRedshiftSgRule:
-    Type: AWS::EC2::SecurityGroupIngress
-    Properties: 
-      Description: Access from AWS Batch for DBT
-      GroupId: !Ref RedshiftSecurityGroup 
-      IpProtocol: tcp
-      SourceSecurityGroupId: !Ref LambdaSecurityGroup
-      FromPort: 5439
-      ToPort: 5439
-
-  LambdaIngestFunctionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - sts:AssumeRole
-      Path: /
-
   LambdaAccessPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -200,35 +167,4 @@ Resources:
     Properties:
       ServiceToken: !GetAtt LambdaIngestFunction.Arn
 
-Outputs:
-  VPC:
-    Description: VPC ID
-    Value: !Ref VPC
-    Export:
-      Name: !Sub "${AWS::StackName}-VPC"
-  PrivateSubnet:
-    Description: Private subnet ID
-    Value: !Ref PrivateSubnet
-    Export:
-      Name: !Sub "${AWS::StackName}-PrivateSubnet"
-  PublicSubnet:
-    Description: Public subnet ID
-    Value: !Ref PublicSubnet
-    Export:
-      Name: !Sub "${AWS::StackName}-PublicSubnet"
-  RedshiftIamRole:
-    Description: Name of IAM Role used by Reshift cluster
-    Value: !GetAtt RedshiftAccessRole.Arn
-  RedshiftClusterName:
-    Description: Name of Redshift cluster
-    Value: !Ref RedshiftCluster
-  RedshiftSecurityGroup:
-    Description: Security group of Redshift cluster
-    Value: !Ref RedshiftSecurityGroup
-    Export:
-      Name: !Sub "${AWS::StackName}-RedshiftSecurityGroup"
-  RedshiftClusterEndpoint:
-    Description: Redshift cluster endpoint
-    Value: !Sub "${RedshiftCluster.Endpoint.Address}"
-    Export:
-      Name: !Sub "${AWS::StackName}-RedshiftClusterEndpoint"
+
