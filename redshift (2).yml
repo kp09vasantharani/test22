@@ -7,7 +7,7 @@ Description: 'Template to deploy Redshift and VPC with public and private subnet
 
 Resources:
  
- RedshiftSecret:
+  RedshiftSecret:
     Type: AWS::SecretsManager::Secret
     Properties:
       Name: "redshift-creds"
