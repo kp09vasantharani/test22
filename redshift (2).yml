@@ -7,148 +7,6 @@ Description: 'Template to deploy Redshift and VPC with public and private subnet
 
 Resources:
 
-  ############# VPC, Private subnet, Public subnet ##################
-  VPC:
-    Type: 'AWS::EC2::VPC'
-    Properties:
-      CidrBlock: 172.16.0.0/16
-      InstanceTenancy: default
-      EnableDnsSupport: true
-      EnableDnsHostnames: false
-
-  PublicSubnet:
-    Type: 'AWS::EC2::Subnet'
-    Properties:
-      CidrBlock: 172.16.0.0/24
-      VpcId: !Ref VPC
-      AvailabilityZone: "us-west-1"
-      MapPublicIpOnLaunch: true
-      Tags:
-        - Key: Name
-          Value: PublicSubnet
-
-  PrivateSubnet:
-    Type: 'AWS::EC2::Subnet'
-    Properties:
-      CidrBlock: 172.16.2.0/24
-      VpcId: !Ref VPC
-      AvailabilityZone: "us-west-1"
-      Tags:
-        - Key: Name
-          Value: PrivateSubnet
-
-  NetworkAcl:
-    Type: 'AWS::EC2::NetworkAcl'
-    Properties:
-      VpcId: !Ref VPC
-
-  InboundNetworkAclEntry:
-    Type: 'AWS::EC2::NetworkAclEntry'
-    Properties:
-      CidrBlock: 0.0.0.0/0
-      Egress: 'False'
-      Protocol: '-1'
-      RuleAction: allow
-      RuleNumber: '100'
-      NetworkAclId: !Ref NetworkAcl
-
-  OutboundNetworkAclEntry:
-    Type: 'AWS::EC2::NetworkAclEntry'
-    Properties:
-      CidrBlock: 0.0.0.0/0
-      Egress: 'True'
-      Protocol: '-1'
-      RuleAction: allow
-      RuleNumber: '100'
-      NetworkAclId: !Ref NetworkAcl
-
-  NetworkAclPublicSubnet:
-    Type: 'AWS::EC2::SubnetNetworkAclAssociation'
-    DependsOn:
-    - InboundNetworkAclEntry
-    - OutboundNetworkAclEntry
-    Properties:
-      NetworkAclId: !Ref NetworkAcl
-      SubnetId: !Ref PublicSubnet
-
-  NetworkAclPrivateSubnet:
-    Type: 'AWS::EC2::SubnetNetworkAclAssociation'
-    DependsOn:
-    - InboundNetworkAclEntry
-    - OutboundNetworkAclEntry
-    Properties:
-      NetworkAclId: !Ref NetworkAcl
-      SubnetId: !Ref PrivateSubnet
-
-  InternetGateway:
-    Type: 'AWS::EC2::InternetGateway'
-
-  InternetGatewayAttachment:
-    Type: 'AWS::EC2::VPCGatewayAttachment'
-    Properties:
-      VpcId: !Ref VPC
-      InternetGatewayId: !Ref InternetGateway
-
-  NatGatewayEIP:
-    Type: AWS::EC2::EIP
-    Properties:
-      Domain: vpc
-
-  NatGateway:
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId: !GetAtt NatGatewayEIP.AllocationId
-      SubnetId:
-        Ref: PublicSubnet
-
-  PublicRouteTable:
-    Type: 'AWS::EC2::RouteTable'
-    Properties:
-      VpcId: !Ref VPC
-      Tags:
-        - Key: Name
-          Value: Public Route Table
-
-  PublicRouteTableSubnet:
-    Type: 'AWS::EC2::SubnetRouteTableAssociation'
-    Properties:
-      RouteTableId: !Ref PublicRouteTable
-      SubnetId: !Ref PublicSubnet
-
-  PrivateRouteTable:
-    Type: 'AWS::EC2::RouteTable'
-    Properties:
-      VpcId: !Ref VPC
-      Tags:
-        - Key: Name
-          Value: Private Route Table1
-
-  PrivateRouteTableSubnet:
-    Type: 'AWS::EC2::SubnetRouteTableAssociation'
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable
-      SubnetId: !Ref PrivateSubnet
-
-  Route2InternetGateway:
-    Type: 'AWS::EC2::Route'
-    Properties:
-      DestinationCidrBlock: 0.0.0.0/0
-      RouteTableId: !Ref PublicRouteTable
-      GatewayId: !Ref InternetGateway
-    DependsOn: 
-    - InternetGatewayAttachment
-    - PublicRouteTableSubnet
-
-  Route2NatGateway:
-    Type: 'AWS::EC2::Route'
-    DependsOn:
-    - PrivateRouteTableSubnet
-    Properties:
-      DestinationCidrBlock: 0.0.0.0/0
-      RouteTableId: !Ref PrivateRouteTable
-      NatGatewayId: !Ref NatGateway
-
-
   ######### REDSHIFT : IAM role, cluster, security group, secret manager ##########
   RedshiftAccessRole:
     Type: AWS::IAM::Role
@@ -228,11 +86,6 @@ Resources:
   # Lambda to ingest data to Redshift
   LambdaIngestFunction:
     Type: AWS::Lambda::Function
-    DependsOn:
-    - Route2InternetGateway
-    - Route2NatGateway
-    - NetworkAclPrivateSubnet
-    - NetworkAclPublicSubnet
     Properties:
       Code:
         ZipFile: !Sub |
@@ -331,12 +184,7 @@ Resources:
       Runtime: python3.7
       Layers:
         - !Ref LambdaLayer
-      VpcConfig: 
-        SubnetIds: 
-          - !Ref PrivateSubnet
-        SecurityGroupIds:
-          - !Ref LambdaSecurityGroup
-
+        
   LambdaLayer:
     Type: AWS::Lambda::LayerVersion
     Properties: 
@@ -348,23 +196,6 @@ Resources:
       Description: Package for redshift connection
       LayerName: RedshiftUtil
       LicenseInfo: MIT
-
-  LambdaSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: EC2 Security Group for Lambda function
-      VpcId:
-        Ref: VPC
-
-  LambdaToRedshiftSgRule:
-    Type: AWS::EC2::SecurityGroupIngress
-    Properties: 
-      Description: Access from AWS Batch for DBT
-      GroupId: !Ref RedshiftSecurityGroup 
-      IpProtocol: tcp
-      SourceSecurityGroupId: !Ref LambdaSecurityGroup
-      FromPort: 5439
-      ToPort: 5439
 
   LambdaIngestFunctionRole:
     Type: AWS::IAM::Role
@@ -404,35 +235,3 @@ Resources:
     Properties:
       ServiceToken: !GetAtt LambdaIngestFunction.Arn
 
-Outputs:
-  VPC:
-    Description: VPC ID
-    Value: !Ref VPC
-    Export:
-      Name: !Sub "${AWS::StackName}-VPC"
-  PrivateSubnet:
-    Description: Private subnet ID
-    Value: !Ref PrivateSubnet
-    Export:
-      Name: !Sub "${AWS::StackName}-PrivateSubnet"
-  PublicSubnet:
-    Description: Public subnet ID
-    Value: !Ref PublicSubnet
-    Export:
-      Name: !Sub "${AWS::StackName}-PublicSubnet"
-  RedshiftIamRole:
-    Description: Name of IAM Role used by Reshift cluster
-    Value: !GetAtt RedshiftAccessRole.Arn
-  RedshiftClusterName:
-    Description: Name of Redshift cluster
-    Value: !Ref RedshiftCluster
-  RedshiftSecurityGroup:
-    Description: Security group of Redshift cluster
-    Value: !Ref RedshiftSecurityGroup
-    Export:
-      Name: !Sub "${AWS::StackName}-RedshiftSecurityGroup"
-  RedshiftClusterEndpoint:
-    Description: Redshift cluster endpoint
-    Value: !Sub "${RedshiftCluster.Endpoint.Address}"
-    Export:
-      Name: !Sub "${AWS::StackName}-RedshiftClusterEndpoint"
