@@ -6,6 +6,17 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: 'Template to deploy Redshift and VPC with public and private subnet, and ingest data to Redshift'
 
 Resources:
+ 
+ RedshiftSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: "redshift-creds"
+      Description: 'This is the secret for Redshift cluster'
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "awsuser", "dbname": "dev"}'
+        GenerateStringKey: 'password'
+        PasswordLength: 16
+        ExcludePunctuation: True
 
   # Lambda to ingest data to Redshift
   LambdaIngestFunction:
