@@ -17,7 +17,7 @@ Resources:
         GenerateStringKey: 'password'
         PasswordLength: 16
         ExcludePunctuation: True
-
+        
   # Lambda to ingest data to Redshift
   LambdaIngestFunction:
     Type: AWS::Lambda::Function
