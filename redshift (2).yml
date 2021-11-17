@@ -272,6 +272,7 @@ Resources:
               username, password = get_redshift_creds()
               conn = create_conn(username, password)
               run_query(conn, "DROP TABLE IF EXISTS public.orders CASCADE;")
+
               run_query(conn, """
                   CREATE TABLE public.nation (
                     N_NATIONKEY bigint NOT NULL PRIMARY KEY,
@@ -303,25 +304,25 @@ Resources:
           - Arn
       Runtime: python3.7
       Layers:
-       - !Ref MyLayer
+       - !Ref LambdaLayer
       VpcConfig: 
         SubnetIds: 
           - !Ref PrivateSubnet
         SecurityGroupIds:
           - !Ref LambdaSecurityGroup
-  
+
   MyLayer:
     Type: AWS::Lambda::LayerVersion
     Properties:
-    CompatibleRuntimes:
-      - python3.6
-      - python3.7
-    Content:
-      S3Bucket: gudimrinal
-      S3Key: layer.zip
-    Description: My layer
-    LayerName: my-layer
-    LicenseInfo: MIT
+      CompatibleRuntimes:
+        - python3.6
+        - python3.7
+      Content:
+        S3Bucket: gudimrinal
+        S3Key: layer.zip
+      Description: My layer
+      LayerName: my-layer
+      LicenseInfo: MIT
 
   LambdaSecurityGroup:
     Type: AWS::EC2::SecurityGroup
