@@ -304,7 +304,7 @@ Resources:
           - Arn
       Runtime: python3.7
       Layers:
-       - !Ref LambdaLayer
+       - !Ref MyLayer
       VpcConfig: 
         SubnetIds: 
           - !Ref PrivateSubnet
