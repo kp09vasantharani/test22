@@ -318,7 +318,7 @@ Resources:
         - python3.6
         - python3.7
       Content:
-        S3Bucket: lambda-layer-bucket21
+        S3Bucket: lambda-layer-bucket11
         S3Key: layer.zip
       Description: My layer
       LayerName: my-layer
